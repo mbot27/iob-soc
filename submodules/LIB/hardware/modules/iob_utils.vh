@@ -1,0 +1,34 @@
+`define IOB_MAX(a, b) (((a) > (b)) ? (a) : (b))
+`define IOB_MIN(a, b) (((a) < (b)) ? (a) : (b))
+`define IOB_ABS(a, w) {a[w-1]? (-a): (a)}
+
+
+`define IOB_NBYTES (DATA_W/8)
+`define IOB_GET_NBYTES(WIDTH) (WIDTH/8 + |(WIDTH%8))
+`define IOB_NBYTES_W $clog2(`IOB_NBYTES)
+
+`define IOB_WORD_ADDR(ADDR) ((ADDR>>`IOB_NBYTES_W)<<`IOB_NBYTES_W)
+
+`define IOB_BYTE_OFFSET(ADDR) (ADDR%(DATA_W/8))
+
+`define IOB_GET_WDATA(ADDR, DATA) (DATA<<(8*`IOB_BYTE_OFFSET(ADDR)))
+`define IOB_GET_WSTRB(ADDR, WIDTH) (((1<<`IOB_GET_NBYTES(WIDTH))-1)<<`IOB_BYTE_OFFSET(ADDR))
+`define IOB_GET_RDATA(ADDR, DATA, WIDTH) ((DATA>>(8*`IOB_BYTE_OFFSET(ADDR)))&((1<<WIDTH)-1))
+
+//
+//TESTBENCH UTILS
+//
+
+//CLOCK GENERATOR
+`define IOB_CLOCK(CLK, PER) initial CLK=0; always #(PER/2) CLK = ~CLK;
+
+//PULSE GENERATOR
+`define IOB_PULSE(VAR, PRE, DURATION, POST) VAR=0; #PRE VAR=1; #DURATION VAR=0; #POST;
+
+//RESET GENERATOR
+`define IOB_RESET(CLK, RESET, PRE, DURATION, POST) RESET=0; #PRE RESET=1; #DURATION RESET=0; \
+   #POST; @(posedge CLK) #1 RESET=0;
+
+//SLEEP
+`define IOB_SLEEP(TIME) #TIME;
+
