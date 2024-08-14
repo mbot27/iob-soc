@@ -192,48 +192,36 @@ def setup(py_params_dict):
         assign right = {q, r[SIZE_W+1], 1'b1};
         assign left = {r[SIZE_W-1:0], a[DATA_W-1 -: 2]};
         assign a_in = {a[DATA_W-3:0], 2'b00};
-        assign tmp =  r[SIZE_W+1]? left + right:left - right;
-        always @(posedge clk_i) begin
-      if (rst_i) begin
-         pc <= 1'd0;
-      end else begin
-         pc <= pc + 1'b1;
-
-         case (pc)
-           0: begin
-              if (start_i) begin
-                 a <= op_i;
-                 q <= 0;
-                 r <= 0;
-
-                 counter <= 0;
-              end else begin
-                 pc <= pc;
-              end
-           end
-           1: begin
-              r <= tmp;
-              q <= {q[SIZE_W-2:0], ~tmp[SIZE_W+1]};
-
-              a <= a_in;
-
-              if (counter != END_COUNT[COUNT_W:0] - 1) begin
-                 counter <= counter + 1'b1;
-                 pc <= pc;
-              end else begin
-                 pc <= 1'b0;
-              end
-           end
-           default:;
-         endcase
-      end
-   end
-
-   assign res_o = q;
-   assign done_o = ~pc;
-              """,
+        assign tmp =  r[SIZE_W+1] ? left + right : left - right;
+        assign res_o = q;
+        assign done_o = ~pc0;
+""",
             },
         ],
-    }
+        "fsms": [
+            {
+                "verilog_code": """
+        idle:
 
+            if (start_i) begin
+                a_nxt = op_i;
+                q_nxt = 0;
+                r_nxt = 0;
+                counter_nxt = 0;
+            end else begin
+                pc_nxt = pc;
+            end
+            
+            r_nxt = tmp;
+            q_nxt = {q[SIZE_W-2:0], ~tmp[SIZE_W+1]};
+            a_nxt = a_in;
+            if (counter != END_COUNT[COUNT_W-1:0] - 1) begin
+                counter_nxt = counter + 1'b1;
+                pc_nxt = pc;
+            end else begin
+                pc_nxt = idle; end
+""",
+            }
+        ],
+    }
     return attributes_dict
