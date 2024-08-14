@@ -3,7 +3,80 @@ def setup(py_params_dict):
         "original_name": "iob_asym_converter",
         "name": "iob_asym_converter",
         "version": "0.1",
-        "generate_hw": False,
+        "confs": [
+            {
+                "name": "W_DATA_W",
+                "type": "P",
+                "val": "21",
+                "min": "NA",
+                "max": "NA",
+                "descr": "Data bus width",
+            },
+            {
+                "name": "R_DATA_W",
+                "type": "P",
+                "val": "21",
+                "min": "NA",
+                "max": "NA",
+                "descr": "R_DATA value.",
+            },
+            {
+                "name": "ADDR_W",
+                "type": "P",
+                "val": "3",
+                "min": "NA",
+                "max": "NA",
+                "descr": "ADDR value.",
+            },
+            {
+                "name": "MAXDATA_W",
+                "type": "P",
+                "val": "`IOB_MAX(W_DATA_W, R_DATA_W)",
+                "min": "NA",
+                "max": "NA",
+                "descr": "MAXDATA value.",
+            },
+            {
+                "name": "MINDATA_W",
+                "type": "P",
+                "val": "`IOB_MIN(W_DATA_W, R_DATA_W)",
+                "min": "NA",
+                "max": "NA",
+                "descr": "MINDATA value.",
+            },
+            {
+                "name": "R",
+                "type": "P",
+                "val": "MAXDATA_W / MINDATA_W",
+                "min": "NA",
+                "max": "NA",
+                "descr": "R value.",
+            },
+            {
+                "name": "MINADDR_W",
+                "type": "P",
+                "val": "ADDR_W - $clog2(R)",
+                "min": "NA",
+                "max": "NA",
+                "descr": "MINADDR value.",
+            },
+            {
+                "name": "W_ADDR_W",
+                "type": "P",
+                "val": "(W_DATA_W == MAXDATA_W) ? MINADDR_W : ADDR_W",
+                "min": "NA",
+                "max": "NA",
+                "descr": "W_ADDR value.",
+            },
+            {
+                "name": "R_ADDR_W",
+                "type": "P",
+                "val": "(R_DATA_W == MAXDATA_W) ? MINADDR_W : ADDR_W",
+                "min": "NA",
+                "max": "NA",
+                "descr": "R_ADDR value.",
+            },
+        ],
         "ports": [
             {
                 "name": "clk_en_rst",
@@ -118,14 +191,76 @@ def setup(py_params_dict):
                 ],
             },
         ],
+        "wires": [
+            {
+                "name": "r_data_reg",
+                "descr": "r_data_reg wire",
+                "signals": [
+                    {"name": "r_data_reg", "width": "MAXDATA_W"},
+                ],
+            },
+            {
+                "name": "r_data_int",
+                "descr": "r_data_int wire",
+                "signals": [
+                    {"name": "r_data_int", "width": "MAXDATA_W"},
+                ],
+            },
+            {
+                "name": "r_addr_lsbs_reg",
+                "descr": "r_addr_lsbs_reg wire",
+                "signals": [
+                    {"name": "r_addr_lsbs_reg", "width": "$clog2(R)"},
+                ],
+            },
+            {
+                "name": "r_data",
+                "descr": "r_data wire",
+                "signals": [
+                    {"name": "r_data", "width": "W_DATA_W"},
+                ],
+            },
+            {
+                "name": "r_data_reg",
+                "descr": "r_data_reg wire",
+                "signals": [
+                    {"name": "r_data_reg", "width": "MAXDATA_W"},
+                ],
+            },
+            {
+                "name": "r_en_int",
+                "descr": "r_en_int wire",
+                "signals": [
+                    {"name": "r_en", "width": 1},
+                ],
+            },
+        ],
         "blocks": [
             {
                 "core_name": "iob_reg_r",
-                "instance_name": "iob_reg_r_inst",
+                "instance_name": "r_data_valid_reg_inst",
+                "parameters": {
+                    "DATA_W": 1,
+                    "RST_VAL": "1'b0",
+                },
+                "connect": {
+                    "rst": "rst",
+                    "data_i": "r_en_int",
+                    "data_o": "r_data_valid_reg",
+                },
             },
             {
                 "core_name": "iob_reg_re",
-                "instance_name": "iob_reg_re_inst",
+                "instance_name": "r_data_reg_inst",
+                "parameters": {
+                    "DATA_W": "MAXDATA_W",
+                    "RST_VAL": "{MAXDATA_W{1'd0}}",
+                },
+                "connect": {
+                    "rst": "rst",
+                    "data_i": "r_en_int",
+                    "data_o": "r_data_valid_reg",
+                },
             },
             {
                 "core_name": "iob_functions",
