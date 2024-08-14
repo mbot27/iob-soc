@@ -29,11 +29,13 @@ module axi2iob #(
     input  wire [             3:0] s_axi_awcache_i,
     input  wire [             2:0] s_axi_awprot_i,
     input  wire                    s_axi_awvalid_i,
+
     output wire                    s_axi_awready_o,
     input  wire [  DATA_WIDTH-1:0] s_axi_wdata_i,
     input  wire [  STRB_WIDTH-1:0] s_axi_wstrb_i,
     input  wire                    s_axi_wlast_i,
     input  wire                    s_axi_wvalid_i,
+    
     output wire                    s_axi_wready_o,
     output wire [AXI_ID_WIDTH-1:0] s_axi_bid_o,
     output wire [             1:0] s_axi_bresp_o,
