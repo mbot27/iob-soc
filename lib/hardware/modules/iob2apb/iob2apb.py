@@ -82,14 +82,14 @@ def setup(py_params_dict):
                 "name": "apb_rdata_int",
                 "descr": "apb_rdata_int wire",
                 "signals": [
-                    {"name": "apb_rdata_int", "width": 32},
+                    {"name": "apb_rdata_int", "width": 22},
                 ],
             },
             {
                 "name": "iob_rdata_int",
                 "descr": "iob_rdata_int wire",
                 "signals": [
-                    {"name": "iob_rdata_int", "width": 32},
+                    {"name": "iob_rdata"},
                 ],
             },
             {
@@ -104,6 +104,13 @@ def setup(py_params_dict):
                 "descr": "iob_rvalid_int wire",
                 "signals": [
                     {"name": "iob_rvalid_int", "width": 1},
+                ],
+            },
+            {
+                "name": "apb_enable",
+                "descr": "apb_enable wire",
+                "signals": [
+                    {"name": "apb_enable", "width": 1},
                 ],
             },
         ],
@@ -151,7 +158,6 @@ def setup(py_params_dict):
         "snippets": [
             {
                 "verilog_code": """
-        reg  [1:0] pc_nxt;
         reg  [1:0] apb_enable;
         always @* begin
     pc_nxt_int    = pc_int + 1'b1;
