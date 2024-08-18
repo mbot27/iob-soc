@@ -156,23 +156,84 @@ def setup(py_params_dict):
                 ],
             },
             {
-                "name": "r_data",
-                "descr": "r_data wire",
+                "name": "r_data_int",
+                "descr": "r_data_int wire",
                 "signals": [
-                    {"name": "r_data", "width": "DATA_W"},
+                    {"name": "r_data_int", "width": "DATA_W"},
                 ],
             },
-
+            {
+                "name": "sync_int",
+                "descr": "sync wire",
+                "signals": [
+                    {"name": "r_clk"},
+                    {"name": "r_arst"},
+                ],
+            },
+            {
+                "name": "reg_int",
+                "descr": "reg wire",
+                "signals": [
+                    {"name": "r_clk"},
+                    {"name": "r_cke"},
+                    {"name": "r_arst"},
+                ],
+            },
         ],
         "blocks": [
             {
                 "core_name": "iob_sync",
-                "instance_name": "iob_sync_inst",
-                
+                "instance_name": "iob_sync_regfile_synced",
+                "parameters": {
+                    "DATA_W": "(2 ** ADDR_W) * DATA_W",
+                    "RST_VAL": "{((2 ** ADDR_W) * DATA_W) {1'b0}}",
+                },
+                "connect": {
+                    "clk_rst": "sync_int",
+                    "signal_i": "regfile_in",
+                    "signal_o": "regfile_synced",
+                },
             },
             {
                 "core_name": "iob_reg_e",
                 "instantiate": False,
+            },
+            {
+                "core_name": "iob_reg",
+                "instance_name": "rdata",
+                "parameters": {
+                    "DATA_W": "DATA_W",
+                    "RST_VAL": "{DATA_W{1'd0}}",
+                },
+                "connect": {
+                    "clk_en_rst": "reg_int",
+                    "data_i": "r_data_int",
+                    "data_o": "r_data_o",
+                },
+            },
+        ],
+        "snippets": [
+            {
+                "verilog_code": """
+        assign r_data = regfile_synced[r_addr_i*DATA_W+:DATA_W];
+         genvar addr;
+   generate
+      for (addr = 0; addr < (2 ** ADDR_W); addr = addr + 1) begin : gen_register_file
+         assign regfile_en[addr] = (w_addr_i == addr);
+         iob_reg_e #(
+            .DATA_W (DATA_W),
+            .RST_VAL({DATA_W{1'd0}})
+         ) rdata (
+            .clk_i (w_clk_i),
+            .cke_i (w_cke_i),
+            .arst_i(w_arst_i),
+            .en_i  (regfile_en[addr]),
+            .data_i(w_data_i),
+            .data_o(regfile_in[addr*DATA_W+:DATA_W])
+         );
+      end
+   endgenerate
+            """,
             },
         ],
     }
